@@ -3,10 +3,10 @@ const data = require("./data/day-6.json");
 const parseLine = (line) => {
   let split = line.split(" ");
   let end = split.pop();
-  end = { x: end.split(",")[0], y: end.split(",")[1] };
+  end = { x: parseInt(end.split(",")[0]), y: parseInt(end.split(",")[1]) };
   split.pop();
   let start = split.pop();
-  start = {x: start.split(',')[0], y: start.split(',')[1]}
+  start = {x: parseInt(start.split(',')[0]), y: parseInt(start.split(',')[1])}
   const action = split.join(" ");
   return {
     action,
@@ -65,9 +65,7 @@ const followDirections = directions => {
   return lightsSet.size
 }
 
-// console.log(parseLine(data[0]));
 console.log(
   followDirections(data)
 )
 
-// 418954 -> too high
