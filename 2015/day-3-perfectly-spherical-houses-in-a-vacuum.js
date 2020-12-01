@@ -1,94 +1,67 @@
-const data = require("./data/day-3.json")
+const data = require("./data/day-3.json");
 
-const chooseMove = (move, historyArr, currentPosition) => {
+const chooseMove = (move, historySet, currentPosition) => {
   switch (move) {
     case "^":
-      return moveUp(historyArr, currentPosition)
+      return moveUp(historySet, currentPosition);
     case ">":
-      return moveRight(historyArr, currentPosition)
+      return moveRight(historySet, currentPosition);
     case "v":
-      return moveDown(historyArr, currentPosition)
+      return moveDown(historySet, currentPosition);
     case "<":
-      return moveLeft(historyArr, currentPosition)
+      return moveLeft(historySet, currentPosition);
     default:
-      return "Something went wrong in chooseMove..."
+      return "Something went wrong in chooseMove...";
   }
-}
+};
 
-const incrementCurrentPosition = (historyArr, currentPosition) => {
-  historyArr[currentPosition[0]][currentPosition[1]]++
-}
-
-const moveUp = (historyArr = [[1]], currentPosition = [0,0]) => {
-  if (currentPosition[0] === 0) {
-    addRow(historyArr, "top")
-  } else {
-    currentPosition[0]--
-  }
-  incrementCurrentPosition(historyArr, currentPosition)
-  return historyArr
-}
-
-const moveRight = (historyArr = [[1]], currentPosition = [0,0]) => {
-  if(currentPosition[1] === historyArr[0].length - 1){
-    addCol(historyArr, 'right')
-  }
+const moveUp = (historySet = [[1]], currentPosition = [0, 0]) => {
   currentPosition[1]++
-  incrementCurrentPosition(historyArr, currentPosition)
-  return historyArr
-}
+  historySet.add(currentPosition.toString())
+};
 
-const moveDown = (historyArr = [[1]], currentPosition = [0,0]) => {
-  if (currentPosition[0] === historyArr.length - 1) {
-    addRow(historyArr, "bottom")
-  }
+const moveRight = (historySet = [[1]], currentPosition = [0, 0]) => {
   currentPosition[0]++
-  incrementCurrentPosition(historyArr, currentPosition)
-  return historyArr
-}
+  historySet.add(currentPosition.toString())
+};
 
-const moveLeft = (historyArr = [[1]], currentPosition = [0,0]) => {
-  if(currentPosition[1] === 0) {
-    addCol(historyArr, 'left')
-  }
-  incrementCurrentPosition(historyArr, currentPosition)
-  return historyArr
-}
+const moveDown = (historySet = [[1]], currentPosition = [0, 0]) => {
+  currentPosition[1]--
+  historySet.add(currentPosition.toString())
+};
 
-const addRow = (historyArr, whereToAdd) => {
-  const newRow = historyArr[0].map((ea) => (ea = 0))
-  switch (whereToAdd) {
-    case "top":
-      historyArr.unshift(newRow)
-      break
-    case "bottom":
-      historyArr.push(newRow)
-      break
-    default:
-      return "something went wrong..."
-  }
-}
+const moveLeft = (historySet = [[1]], currentPosition = [0, 0]) => {
+  currentPosition[0]--
+  historySet.add(currentPosition.toString())
+};
 
-const addCol = (historyArr, whereToAdd) => {
-  switch (whereToAdd) {
-    case "left":
-      historyArr.map((ea) => ea.unshift(0))
-      break
-    case "right":
-      historyArr.map((ea) => ea.push(0))
-      break
-    default:
-      return "something went wrong..."
-  }
-}
-
-const followDirections = directionString => {
-  let historyArr = [[1]]
-  currentPosition = [0,0]
-  directionString.split('').forEach(move => {
-    historyArr = chooseMove(move, historyArr, currentPosition)
+const followDirections = (directionString) => {
+  let historySet = new Set();
+  historySet.add('0,0')
+  currentPosition = [0, 0];
+  directionString.split("").forEach((move) => {
+    chooseMove(move, historySet, currentPosition);
   });
-  return historyArr
-}
+  return historySet;
+};
 
-console.log(followDirections(data).map(row => row.filter(house => house !== 0)).reduce((out, curr) => out + curr.length, 0))
+console.log(
+  followDirections(data).size
+);
+
+const followDirectionsPair = (directionString) => {
+  let historySet = new Set();
+  historySet.add('0,0')
+  let santaPosition = [0, 0];
+  let roboPosition = [0, 0];
+  directionString.split("").forEach((move, i) => {
+    if (i % 2 === 0) {
+      chooseMove(move, historySet, santaPosition);
+    } else {
+      chooseMove(move, historySet, roboPosition);
+    }
+  });
+  return historySet.size;
+};
+
+console.log(followDirectionsPair(data))
