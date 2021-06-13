@@ -1,4 +1,4 @@
-const data = require("./data/day-4.json")
+const data = require("./day-04-data.json")
 const crypto = require("crypto")
 
 const md5hash = (string) => crypto.createHash('md5').update(string).digest('hex')

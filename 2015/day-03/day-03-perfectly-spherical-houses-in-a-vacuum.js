@@ -1,4 +1,4 @@
-const data = require("./data/day-3.json");
+const data = require("./day-03-data.json");
 
 const chooseMove = (move, historySet, currentPosition) => {
   switch (move) {

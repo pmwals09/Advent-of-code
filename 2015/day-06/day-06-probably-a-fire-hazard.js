@@ -1,4 +1,4 @@
-const data = require("./data/day-6.json");
+const data = require("./day-06-data.json");
 
 const parseLine = (line) => {
   let split = line.split(" ");
@@ -31,41 +31,42 @@ const selectAction = (parsedLine, lightsSet) => {
   }
 };
 
-const turnOn = (parsedLine, lightsSet) => {
+const turnOn = (parsedLine, lights) => {
   for(let y = parsedLine.start.y; y <= parsedLine.end.y; y++){
     for(let x = parsedLine.start.x; x <= parsedLine.end.x; x++){
-      lightsSet.add(`${x},${y}`)
+      lights[`${x},${y}`] = lights[`${x},${y}`] ? lights[`${x},${y}`] + 1 : 1
     }
   }
 };
 
-const turnOff = (parsedLine, lightsSet) => {
+const turnOff = (parsedLine, lights) => {
   for (let y = parsedLine.start.y; y <= parsedLine.end.y; y++) {
     for (let x = parsedLine.start.x; x <= parsedLine.end.x; x++) {
-      lightsSet.delete(`${x},${y}`)
+      const nextVal = lights[`${x},${y}`] - 1;
+      lights[`${x},${y}`] = lights[`${x},${y}`] ? (nextVal < 0 ? 0 : nextVal) : 0
     }
   }
 };
 
-const toggle = (parsedLine, lightsSet) => {
+const toggle = (parsedLine, lights) => {
   for (let y = parsedLine.start.y; y <= parsedLine.end.y; y++) {
     for (let x = parsedLine.start.x; x <= parsedLine.end.x; x++) {
-      lightsSet.has(`${x},${y}`)
-        ? lightsSet.delete(`${x},${y}`)
-        : lightsSet.add(`${x},${y}`);
+      lights[`${x},${y}`] = lights[`${x},${y}`] ? lights[`${x},${y}`] + 2 : 2;
     }
   }
 };
 
 const followDirections = directions => {
-  let lightsSet = new Set()
+  let lights = {}
   directions.forEach(direction => {
-    selectAction(parseLine(direction), lightsSet)
+    selectAction(parseLine(direction), lights)
   })
-  return lightsSet.size
+  return Object.values(lights).reduce((out, curr) => out + curr, 0)
 }
 
 console.log(
   followDirections(data)
 )
+
+
 

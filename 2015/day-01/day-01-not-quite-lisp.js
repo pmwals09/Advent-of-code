@@ -1,4 +1,4 @@
-const data = require("./data/day-1.json")
+const data = require("./day-01-data.json")
 
 let floor = 0
 let firstInstruction = Infinity

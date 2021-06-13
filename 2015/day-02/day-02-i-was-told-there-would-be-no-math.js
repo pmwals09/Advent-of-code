@@ -1,4 +1,4 @@
-const data = require("./data/day-2.json")
+const data = require("./day-02-data.json")
 
 const parseLine = (line) => {
   return {

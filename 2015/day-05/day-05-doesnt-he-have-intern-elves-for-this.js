@@ -1,4 +1,4 @@
-const data = require("./data/day-5.json");
+const data = require("./day-05-data.json");
 
 const forbiddenStrings = ["ab", "cd", "pq", "xy"];
 
