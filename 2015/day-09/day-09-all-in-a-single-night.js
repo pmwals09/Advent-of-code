@@ -1,6 +1,5 @@
 const fs = require("fs");
 const data = fs.readFileSync(__dirname + "/day-09-data.txt", "utf-8").split("\n");
-// const data = fs.readFileSync(__dirname + "/sampleData.txt", "utf-8").split("\n");
 
 function parseLine(line) {
   const [locations, distance] = line.split(" = ");
