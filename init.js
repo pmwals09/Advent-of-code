@@ -13,10 +13,10 @@ async function main() {
   console.log(onlyPuzzle)
   const {folderName, folderPath} = await makePuzzleDirectory()
   if(onlyPuzzle){
-    writePuzzle();
+    await writePuzzle();
     process.exit(0)
   }
-  writePuzzle();
+  await writePuzzle();
   writeInput();
   createSolution();
 
@@ -75,7 +75,7 @@ async function main() {
         }
       }
       let day
-      if (scriptArgs.length === 1 && !isNaN(scriptArgs[0]) && Number(scriptArgs[0]) < 26) {
+      if (!isNaN(scriptArgs[0]) && Number(scriptArgs[0]) < 26) {
         day = scriptArgs[0];
       } else if (argObj.day && !isNaN(argObj.day)) {
         day = argObj.day;
@@ -146,6 +146,8 @@ async function main() {
       console.log("Creating puzzle directory...")
       await fsp.mkdir(folderPath, {recursive: true});
       console.log("Puzzle directory created!")
+    } else {
+      console.log("Directory already exists")
     }
     return {folderName, folderPath}
   }
@@ -155,28 +157,34 @@ async function main() {
     const fileName = `day-${paddedDay}.txt`;
     const filePath = path.resolve(folderPath, fileName)
     const fileStream = fs.createWriteStream(filePath, {flags: "w"})
-    const puzzleReqOptions = {
-      hostname: "adventofcode.com",
-      path: `/${year}/day/${day}`,
-      port: 443,
-      method: "GET",
-      headers: {
-        Cookie: [process.env.COOKIE],
-      },
-    };
-    const puzzleReq = https.request(puzzleReqOptions, res => {
-      console.log(`Requesting puzzle...received ${res.statusCode} response`)
-      res.on("error", e => console.error(e))
-      res.on("data", d => {
-        console.log("Writing response to puzzle file...")
-        fileStream.write(d)
+    return new Promise((resolve, reject) => {
+      const puzzleReqOptions = {
+        hostname: "adventofcode.com",
+        path: `/${year}/day/${day}`,
+        port: 443,
+        method: "GET",
+        headers: {
+          Cookie: [process.env.COOKIE],
+        },
+      };
+      const puzzleReq = https.request(puzzleReqOptions, res => {
+        console.log(`Requesting puzzle...received ${res.statusCode} response`)
+        res.on("error", e => {
+          console.error(e)
+          reject(e)
+        })
+        res.on("data", d => {
+          console.log("Writing response to puzzle file...")
+          fileStream.write(d)
+        })
+        res.on("end", () => resolve())
       })
+      
+      puzzleReq.on("error", e => console.error(e))
+      puzzleReq.end()
+  
+      console.log("Puzzle retrieved!")
     })
-    
-    puzzleReq.on("error", e => console.error(e))
-    puzzleReq.end()
-
-    console.log("Puzzle retrieved!")
   }
 
   async function writeInput(){
