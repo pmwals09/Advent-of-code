@@ -40,6 +40,7 @@ class Board {
 
 async function main(){
   const [numbers, ...boards] = await parseInput()
+  boards[boards.length - 1] = boards[boards.length - 1].trim();
   let parsedBoards = boards.map(ea => new Board(ea))
 
   console.log("Part one:", partOne())
