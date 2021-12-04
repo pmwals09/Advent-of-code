@@ -17,8 +17,8 @@ async function main() {
     process.exit(0)
   }
   await writePuzzle();
-  writeInput();
-  createSolution();
+  await writeInput();
+  await createSolution();
 
   async function parseEnv() {
     const envPath = path.resolve(__dirname, ".env");
@@ -177,13 +177,13 @@ async function main() {
           console.log("Writing response to puzzle file...")
           fileStream.write(d)
         })
-        res.on("end", () => resolve())
       })
       
       puzzleReq.on("error", e => console.error(e))
       puzzleReq.end()
   
       console.log("Puzzle retrieved!")
+      resolve()
     })
   }
 
@@ -214,33 +214,68 @@ async function main() {
   }
 
   async function createSolution(){
-    console.log("Create boilerplate solution file.")
-    const fileName = `day-${paddedDay}.js`
-    const filePath = path.resolve(folderPath, fileName)
-    console.log("Writing boilerplate solution file...")
-    fsp.writeFile(
-      filePath,
-      `
-const fsp = require("fs/promises")
-const path = require("path")
-
-main()
-
-async function main(){
-  console.log(await parseInput())
-
-  async function parseInput(){
-    const rawInput = await fsp.readFile(path.resolve(__dirname, "day-${paddedDay}-input.txt"), "utf-8")
-    const input = rawInput.split("\\n")
-    return input
+    return new Promise(async (resolve, reject) => {
+      console.log("Create boilerplate solution file.")
+      const fileName = `day-${paddedDay}.js`
+      const filePath = path.resolve(folderPath, fileName)
+      console.log("Writing boilerplate solution file...")
+      if(fs.existsSync(filePath)){
+        await overwritePrompt()
+      } else {
+        await writeBoilerplate()
+        resolve()
+      }
+  
+      async function overwritePrompt(){
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout,
+        });
+  
+        return new Promise((innerResolve, innerReject) => {
+          rl.question("It appears this file already exists. Would you like to overwrite it? [y/n] > ", async (yOrN) => {
+              if(!["y", "n"].includes(yOrN.toLowerCase())){
+                rl.write("Invalid input - please input 'y' or 'n'")
+                rl.close()
+                innerReject()
+                await overwritePrompt()
+              } else if(yOrN.toLowerCase() === "y") {
+                await writeBoilerplate()
+                resolve()
+              }
+              rl.close()
+              innerResolve()
+          })
+        })
+  
+      }
+  
+      async function writeBoilerplate(){
+        await fsp.writeFile(
+          filePath,
+          `
+  const fsp = require("fs/promises")
+  const path = require("path")
+  
+  main()
+  
+  async function main(){
+    console.log(await parseInput())
+  
+    async function parseInput(){
+      const rawInput = await fsp.readFile(path.resolve(__dirname, "day-${paddedDay}-input.txt"), "utf-8")
+      const input = rawInput.split("\\n")
+      return input
+    }
   }
-}
-    `
-    );
-    console.log("Boilerplate solution file written! Testing input reading...")
-
-    const runBase = spawn(`node`, [`day-${paddedDay}.js`], {cwd: folderPath})
-    runBase.stdout.on("data", (d) => process.stdout.write(d));
+        `
+        );
+      }
+      console.log("Boilerplate solution file written! Testing input reading...")
+  
+      const runBase = spawn(`node`, [`day-${paddedDay}.js`], {cwd: folderPath})
+      runBase.stdout.on("data", (d) => process.stdout.write(d));
+    })
   }
 
   function padLeft(num){
