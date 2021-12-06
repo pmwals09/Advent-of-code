@@ -5,151 +5,124 @@ main();
 
 async function main() {
   const lineStrings = await parseInput();
+
+  class Line {
+    constructor({ x1, y1, x2, y2 }) {
+      this.x1 = x1;
+      this.y1 = y1;
+      this.x2 = x2;
+      this.y2 = y2;
+    }
+    static parseLine(lineString) {
+      const [start, end] = lineString.split(" -> ");
+      const [startX, startY] = start.split(",");
+      const [endX, endY] = end.split(",");
+      return {
+        x1: Number(startX),
+        y1: Number(startY),
+        x2: Number(endX),
+        y2: Number(endY),
+      };
+    }
+
+    isHorizontal() {
+      return this.y1 === this.y2;
+    }
+
+    isVertical() {
+      return this.x1 === this.x2;
+    }
+  }
+
+  class Cursor {
+    constructor(line) {
+      this.x = line.x1;
+      this.y = line.y1;
+      this.xDir = line.x1 < line.x2 ? 1 : line.x1 === line.x2 ? 0 : -1;
+      this.yDir = line.y1 < line.y2 ? 1 : line.y1 === line.y2 ? 0 : -1;
+    }
+
+    next() {
+      this.x += this.xDir;
+      this.y += this.yDir;
+    }
+  }
+
+  class VentMap {
+    constructor() {
+      this.ventMap = [[0]];
+    }
+
+    markVents(line) {
+      const cursor = new Cursor(line);
+      while (cursor.x !== line.x2 || cursor.y !== line.y2) {
+        this.expandMap(cursor).markVent(cursor)
+        cursor.next();
+      }
+      this.expandMap(cursor).markVent(cursor)
+    }
+
+    expandMap(cursor){
+      while (cursor.x >= this.ventMap[0].length) {
+        this.addCol();
+      }
+      while (cursor.y >= this.ventMap.length) {
+        this.addRow();
+      }
+
+      return this
+    }
+
+    markVent(cursor){
+      this.ventMap[cursor.y][cursor.x]++
+
+      return this
+    }
+
+    addRow() {
+      const rowLen = this.ventMap[0]?.length || 1;
+      const newRow = [];
+      for (let i = 0; i < rowLen; i++) {
+        newRow.push(0);
+      }
+      this.ventMap.push(newRow);
+    }
+
+    addCol() {
+      for (const row of this.ventMap) {
+        row.push(0);
+      }
+    }
+
+    countVents() {
+      return this.ventMap.reduce(
+        (ventTotal, row) => ventTotal + row.reduce((rowTotal, col) => rowTotal + (col >= 2 ? 1 : 0), 0),
+        0
+      );
+    }
+  }
+
   console.log("Part one:", partOne());
   console.log("Part two:", partTwo());
 
   function partOne() {
     const lines = lineStrings
-      .map((lineString) => parseLineString(lineString))
-      .filter((line) => isHorizontal(line) || isVertical(line));
-    const vents = buildVentCounts(lines);
-    return tallyVents(vents);
+      .map((lineString) => new Line(Line.parseLine(lineString)))
+      .filter((line) => line.isHorizontal() || line.isVertical());
+    const ventMap = new VentMap()
+    for(const line of lines){
+      ventMap.markVents(line)
+    }
+    return ventMap.countVents();
   }
 
   function partTwo() {
-    const lines = lineStrings.map((lineString) => parseLineString(lineString));
-    const vents = buildVentCounts(lines);
-    return tallyVents(vents);
-  }
-
-  function parseLineString(lineString) {
-    const [start, end] = lineString.split(" -> ");
-    const [startX, startY] = start.split(",");
-    const [endX, endY] = end.split(",");
-    return {
-      start: {
-        x: Number(startX),
-        y: Number(startY),
-      },
-      end: {
-        x: Number(endX),
-        y: Number(endY),
-      },
-    };
-  }
-
-  function buildVentCounts(lines) {
-    const vents = [[0]];
-    for (const line of lines) {
-      expandVents({ line, vents });
-      countVents({ line, vents });
+    const lines = lineStrings.map((lineString) => new Line(Line.parseLine(lineString)));
+    const ventMap = new VentMap()
+    for(const line of lines){
+      ventMap.markVents(line)
     }
-    return vents;
-  }
-
-  function expandVents({ line, vents }) {
-    if (!xInBounds({ line, vents })) {
-      widen();
-    }
-    if (!yInBounds({ line, vents })) {
-      heighten();
-    }
-    function widen() {
-      while (!xInBounds({ line, vents })) {
-        addCol();
-      }
-
-      function addCol() {
-        for (const row of vents) {
-          row.push(0);
-        }
-      }
-    }
-    function heighten() {
-      while (!yInBounds({ line, vents })) {
-        addRow();
-      }
-
-      function addRow() {
-        const rowLen = vents[0]?.length || 1;
-        const newRow = [];
-        for (let i = 0; i < rowLen; i++) {
-          newRow.push(0);
-        }
-        vents.push(newRow);
-      }
-    }
-  }
-
-  function xInBounds({ line, vents }) {
-    return line.start.x + 1 <= vents[0].length && line.end.x + 1 <= vents[0].length;
-  }
-
-  function yInBounds({ line, vents }) {
-    return line.start.y + 1 <= vents.length && line.end.y + 1 <= vents.length;
-  }
-
-  function countVents({ line, vents }) {
-    if (isHorizontal(line)) {
-      const row = line.start.y;
-      if (isForward(line)) {
-        for (let col = line.start.x; col <= line.end.x; col++) {
-          vents[row][col] += 1;
-        }
-      } else {
-        for (let i = line.end.x; i <= line.start.x; i++) {
-          vents[row][i] += 1;
-        }
-      }
-    } else if (isVertical(line)) {
-      const col = line.start.x;
-      if (isDown(line)) {
-        for (let row = line.start.y; row <= line.end.y; row++) {
-          vents[row][col] += 1;
-        }
-      } else {
-        for (let row = line.end.y; row <= line.start.y; row++) {
-          vents[row][col] += 1;
-        }
-      }
-    } else {
-      if (isForward(line) && isDown(line)) {
-        for (let row = line.start.y, col = line.start.x; row <= line.end.y; row++, col++) {
-          vents[row][col] += 1;
-        }
-      } else if (isForward(line)) {
-        for (let row = line.start.y, col = line.start.x; row >= line.end.y; row--, col++) {
-          vents[row][col] += 1;
-        }
-      } else if (isDown(line)) {
-        for (let row = line.start.y, col = line.start.x; row <= line.end.y; row++, col--) {
-          vents[row][col] += 1;
-        }
-      } else {
-        for (let row = line.start.y, col = line.start.x; row >= line.end.y; row--, col--) {
-          vents[row][col] += 1;
-        }
-      }
-    }
-  }
-  function isHorizontal(line) {
-    return line.start.y === line.end.y;
-  }
-  function isVertical(line) {
-    return line.start.x === line.end.x;
-  }
-  function isForward(line) {
-    return line.start.x < line.end.x;
-  }
-  function isDown(line) {
-    return line.start.y < line.end.y;
-  }
-
-  function tallyVents(vents) {
-    return vents.reduce(
-      (ventsTotal, row) => ventsTotal + row.reduce((rowTotal, col) => rowTotal + (col >= 2 ? 1 : 0), 0),
-      0
-    );
+    return ventMap.countVents();
   }
 
   async function parseInput() {
