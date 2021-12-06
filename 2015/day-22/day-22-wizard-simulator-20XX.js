@@ -1,193 +1,191 @@
-const fs = require("fs");
-const data = fs.readFileSync(__dirname + "/day-22-data.txt", "utf-8").split("\n");
+console.log("Part One:", partOne());
+console.log("Part Two:", partTwo());
 
-class Player {
-  constructor(hitPoints, armor) {
-    this.hitPoints = hitPoints;
-    this.armor = armor;
-  }
-
-  takeDamage(amount, ignoreArmor = false) {
-    if(ignoreArmor){
-      this.hitPoints -= Math.max(amount, 1)
-    } else {
-      this.hitPoints -= Math.max(amount - this.armor, 1);
-    }
-  }
+function partOne() {
+  const game = new Game();
+  game.playAllGames();
+  return game.leastManaSpent;
 }
 
-class Wizard extends Player {
-  constructor({mana, hitPoints, armor, spells}) {
-    super(hitPoints, armor);
-    this.mana = mana;
-    this.spells = spells;
-    this.effects = [];
-    this.minimumManaReqd = spells.reduce((out, curr) => out < curr.cost ? out : curr.cost, Infinity)
+function partTwo() {
+  const game = new Game(true);
+  game.playAllGames();
+  return game.leastManaSpent;
+}
+
+class Game {
+  constructor(isPartTwo = false) {
+    this.wizard = new Wizard({ hitPoints: 50, mana: 500 });
+    this.boss = new Boss({ hitPoints: 58, damageAmount: 9 });
+    this.leastManaSpent = Infinity;
+    this.isPartTwo = isPartTwo;
   }
 
-  heal(healHitPoints) {
-    this.hitPoints += healHitPoints;
-  }
-
-  increaseArmor(increaseAmount) {
-    this.armor = increaseAmount;
-  }
-
-  dropArmor(){
-    this.armor = 0
-  }
-
-  plusMana(amount) {
-    this.mana += amount;
-  }
-
-  runEffects(boss){
-    if (this.effects.length > 0) {
-      for (let effect of this.effects) {
-        effect.performEffect({ boss, player: this });
-      }
-      // remove any effects that have run their course
-      // run any cleanup functions needed
-      const newEffects = []
-      for (let effect of this.effects){
-        if(effect.turns === 0){
-          if(effect.endFn){
-            effect.endFn({player: this})
-          }
-        } else {
-          newEffects.push(effect)
+  playAllGames(wizard = this.wizard, boss = this.boss) {
+    for (let i = 0; i < wizard.spells.length; i++) {
+      let spellActive = false;
+      for (let j = 0; j < wizard.activeSpells.length; j++) {
+        if (wizard.activeSpells[j].duration > 1 && i === wizard.activeSpells[j].idx) {
+          spellActive = true;
         }
       }
-      this.effects = newEffects
-    }
-  }
+      if (spellActive || wizard.spells[i].cost > wizard.mana) continue;
 
-  attack({boss, manaSpends, spellsCast}) {
-    // run effects
-    this.runEffects(boss)
-    // cast spell
-    // you're dry!
-    if(this.mana < this.minimumManaReqd) return
-    // loop until finding an appropriate spell
-    while(true){
-      // select a spell at random
-      const spellIdx = Math.floor(Math.random() * this.spells.length)
-      const spell = this.spells[spellIdx]
-      // only cast spells where you have enough mana and you don't have the effect actively running
-      if(this.mana >= spell.cost && !this.effects.map(effect => effect.name).includes(spell.name)){
-        this._castSpell({spell, boss, manaSpends})
-        spellsCast.push(spell.name)
-        // break out after casting the spell
-        break
+      const newWizard = wizard.duplicate();
+      const newBoss = boss.duplicate();
+
+      this.playRound(newWizard, newBoss, i);
+
+      if (newBoss.hitPoints <= 0) {
+        this.leastManaSpent = Math.min(this.leastManaSpent, newWizard.spent);
       }
+
+      if (this.shouldContinue(newWizard, newBoss)) this.playAllGames(newWizard, newBoss);
     }
   }
 
+  playRound(wizard, boss, spellIdx) {
+    if (this.isPartTwo) wizard.hitPoints--;
+    wizard.runEffects(boss);
+    wizard.attack(boss, spellIdx);
+    wizard.runEffects(boss);
+    boss.attack(wizard);
+  }
 
-
-  _castSpell({spell, boss, manaSpends}) {
-    if(spell.effectData && spell.effectData.turns > 0) {
-      const {turns, effectFn, endFn} = spell.effectData
-      this.effects.push(new Effect({turns, effectFn, name: spell.name, endFn}))
-    } else {
-      boss.takeDamage(spell.damage, true)
-      if(spell.effectData?.effectFn) spell.effectData.effectFn({boss, player: this})
-    }
-
-    this.mana -= spell.cost
-    manaSpends.push(spell.cost)
+  shouldContinue(wizard, boss) {
+    const wizardMinHp = this.isPartTwo ? 1 : 0;
+    return wizard.hitPoints > wizardMinHp && boss.hitPoints > 0 && wizard.spent < this.leastManaSpent;
   }
 }
 
-class Effect {
-  constructor({turns, effectFn, name, endFn}) {
-    this.turns = turns;
-    this.effectFn = effectFn;
-    this.name = name
-    this.endFn = endFn
+class Player {
+  constructor(hitPoints) {
+    this.hitPoints = hitPoints;
+    this.spent = 0;
+    this.armor = 0;
+    this.activeSpells = [];
   }
 
-  performEffect({boss, player}) {
-    this.effectFn({boss, player});
-    this.turns--
+  takeDamage(amount) {
+    this.hitPoints -= Math.max(1, amount - this.armor);
   }
 }
 
 class Spell {
-  constructor(name, cost, damage, effectData) {
+  constructor({ name, cost, startFn, effectFn, endFn, duration }) {
     this.name = name;
     this.cost = cost;
-    this.damage = damage;
-    this.effectData = effectData;
+    this.start = startFn;
+    this.effect = effectFn;
+    this.end = endFn;
+    this.duration = duration;
+  }
+}
+
+const spells = [
+  new Spell({
+    name: "Magic Missile",
+    cost: 53,
+    effectFn: (_wizard, boss) => boss.takeDamage(4),
+  }),
+  new Spell({
+    name: "Drain",
+    cost: 73,
+    effectFn: (wizard, boss) => {
+      boss.takeDamage(2);
+      wizard.hitPoints += 2;
+    },
+  }),
+  new Spell({
+    name: "Shield",
+    cost: 113,
+    startFn: (wizard, _boss) => (wizard.armor += 7),
+    effectFn: (_wizard, _boss) => {},
+    endFn: (wizard, _boss) => (wizard.armor -= 7),
+    duration: 6,
+  }),
+  new Spell({
+    name: "Poison",
+    cost: 173,
+    effectFn: (_wizard, boss) => boss.takeDamage(3),
+    duration: 6,
+  }),
+  new Spell({
+    name: "Recharge",
+    cost: 229,
+    effectFn: (wizard, _boss) => (wizard.mana += 101),
+    duration: 5,
+  }),
+];
+
+class Wizard extends Player {
+  constructor({ hitPoints, mana }) {
+    super(hitPoints);
+    this.spells = spells;
+    this.mana = mana;
+  }
+
+  attack(boss, spellIdx) {
+    const spell = this.spells[spellIdx];
+    this.spent += spell.cost;
+    this.mana -= spell.cost;
+
+    if (spell.duration) {
+      const newSpell = {
+        idx: spellIdx,
+        effect: spell.effect,
+        duration: spell.duration,
+      };
+      if (spell.start) {
+        spell.start(this, boss);
+      }
+      if (spell.end) {
+        newSpell.end = spell.end;
+      }
+      this.activeSpells.push(newSpell);
+    } else {
+      spell.effect(this, boss);
+    }
+  }
+
+  runEffects(boss) {
+    for (const spell of this.activeSpells) {
+      if (spell.duration > 0) {
+        spell.effect(this, boss);
+        spell.duration--;
+
+        if (spell.end && spell.duration === 0) {
+          spell.end(this, boss);
+        }
+      }
+    }
+  }
+
+  duplicate() {
+    const newWizard = new Wizard({ hitPoints: this.hitPoints, mana: this.mana });
+    newWizard.spent = this.spent;
+    newWizard.armor = this.armor;
+    for (var i = 0; i < this.activeSpells.length; i++) {
+      newWizard.activeSpells.push({ ...this.activeSpells[i] });
+    }
+    return newWizard;
   }
 }
 
 class Boss extends Player {
-  constructor({hitPoints, damage, armor}) {
-    super(hitPoints, armor);
-    this.damage = damage;
+  constructor({ hitPoints, damageAmount }) {
+    super(hitPoints);
+    this.damageAmount = damageAmount;
   }
 
-  attack(player) {
-    player.runEffects(this)
-    player.takeDamage(this.damage);
+  attack(player, _spellIdx) {
+    player.takeDamage(this.damageAmount);
   }
-}
 
-const playerSpells = [
-  new Spell("Magic Missile", 53, 4, null),
-  new Spell("Drain", 73, 2, { turns: 0, effectFn: ({ player }) => player.heal(2) }),
-  new Spell("Shield", 113, 0, {
-    turns: 6,
-    effectFn: ({ player }) => player.increaseArmor(7),
-    endFn: ({ player }) => (player.dropArmor()),
-  }),
-  new Spell("Poison", 173, 0, { turns: 6, effectFn: ({ boss }) => boss.takeDamage(3, true) }),
-  new Spell("Recharge", 229, 0, { turns: 5, effectFn: ({ player }) => player.plusMana(101) }),
-];
-
-let leastMana = Infinity;
-let winningSpellsCast = []
-
-console.log("Running simulations...");
-const totalRounds = 1_000_000_000;
-for (let roundIdx = 0; roundIdx < totalRounds; roundIdx++){
-  // const player = new Wizard({ mana: 500, hitPoints: 50, armor: 0, spells: playerSpells });
-  // const boss = new Boss({ hitPoints: 58, damage: 9, armor: 0 });
-  const player = new Wizard({ mana: 250, hitPoints: 10, armor: 0, spells: playerSpells });
-  const boss = new Boss({ hitPoints: 13, damage: 8, armor: 0 });
-  const manaSpends = [];
-  const spellsCast = []
-  let turnIdx = 0;
-  while (player.hitPoints > 0 && boss.hitPoints > 0) {
-    if (turnIdx % 2 === 0) {
-      player.attack({ boss, manaSpends, spellsCast });
-    } else {
-      boss.attack(player);
-    }
-    turnIdx++;
-  }
-  if (player.hitPoints > 0) {
-    const manaCount = manaSpends.reduce((out, curr) => out + curr, 0);
-    if (manaCount < leastMana){
-      leastMana = manaCount;
-      winningSpellsCast = spellsCast
-    }
-  }
-  if(roundIdx / totalRounds * 100 % 10 === 0){
-    console.log(`${Math.round(roundIdx / totalRounds * 100)}% complete...`)
+  duplicate() {
+    var newBoss = new Boss({ hitPoints: this.hitPoints, damageAmount: this.damageAmount });
+    newBoss.spent = this.spent;
+    newBoss.armor = this.armor;
+    return newBoss;
   }
 }
-console.log("LEAST MANA: ", leastMana);
-console.log("SPELLS CAST:\n", winningSpellsCast.join(",\n"))
-
-
-// too low: 987
-// incorrect: 1309
-// incorrect: 1341
-// too high: 1475
-
-/**
- * Part One: 1269
- * Part Two: 1309
- */
