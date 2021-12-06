@@ -103,12 +103,10 @@ class Submarine
   }
 }
 
-class Input
+class Input : BaseInput
 {
-  public readonly string[] _lines;
-  public Input(string filepath)
+  public Input(string filepath) : base(filepath)
   {
-    _lines = File.ReadAllLines(filepath);
   }
 
   public Instruction[] ParseInput()

@@ -38,17 +38,10 @@ class Solution
   }
 }
 
-class Input
+class Input : BaseInput
 {
-  private readonly string[] _lines;
-
-  public Input()
+  public Input(string filepath) : base(filepath)
   {
-  }
-
-  public Input(string filepath)
-  {
-    _lines = File.ReadAllLines(filepath);
   }
 
   public int[] ParseInput()
