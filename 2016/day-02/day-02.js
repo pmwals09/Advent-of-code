@@ -91,7 +91,6 @@ async function main() {
 
   async function parseInput() {
     const rawInput = await fsp.readFile(path.resolve(__dirname, "day-02-input.txt"), "utf-8")
-    // const rawInput = "ULL\nRRDDD\nLURDL\nUUUUD"
     const input = rawInput
       .split("\n")
       .filter((ea) => ea.length > 0)
