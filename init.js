@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const https = require("https")
 const fsp = require("fs/promises")
 const fs = require("fs")
