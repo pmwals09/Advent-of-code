@@ -256,20 +256,30 @@ async function main() {
         await fsp.writeFile(
           filePath,
           `
-  const fsp = require("fs/promises")
-  const path = require("path")
-  
-  main()
-  
-  async function main(){
-    console.log(await parseInput())
-  
-    async function parseInput(){
-      const rawInput = await fsp.readFile(path.resolve(__dirname, "day-${paddedDay}-input.txt"), "utf-8")
-      const input = rawInput.split("\\n")
-      return input
-    }
-  }
+const fsp = require("fs/promises")
+const path = require("path")
+
+main()
+
+async function main(){
+  const input = await parseInput()
+  console.log("Part one:", partOne(input))
+  console.log("Part two:", partTwo(input))
+}
+
+async function parseInput(){
+  const rawInput = await fsp.readFile(path.resolve(__dirname, "day-${paddedDay}-input.txt"), "utf-8")
+  const input = rawInput.split("\\n").filter(Boolean)
+  return input
+}
+
+function partOne(input){
+  console.log(input)
+}
+
+function partTwo(input){
+  console.log(input)
+}
         `
         );
       }
