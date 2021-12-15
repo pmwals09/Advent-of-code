@@ -1,13 +1,23 @@
 
 const fsp = require("fs/promises")
 const path = require("path")
+const {performance} = require("perf_hooks")
 
 main()
 
 async function main(){
+  const start = performance.now()
   const input = await parseInput()
+  const partOneStart = performance.now()
   console.log("Part one:", partOne(input))
+  const partOneEnd = performance.now()
+  console.log(`Part one runtime: ${(partOneEnd - partOneStart).toFixed(2)}ms`)
+  const partTwoStart = performance.now()
   console.log("Part two:", partTwo(input))
+  const partTwoEnd = performance.now()
+  console.log(`Part two runtime: ${(partTwoEnd - partTwoStart).toFixed(2)}ms`)
+  const end = performance.now()
+  console.log(`Total runtime: ${(end - start).toFixed(2)}ms`)
 }
 
 async function parseInput(){
