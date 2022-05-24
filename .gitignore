@@ -1,3 +1,4 @@
 .env
 *.exe
 *.dylib*
+.DS_Store
