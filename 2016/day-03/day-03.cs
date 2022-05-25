@@ -6,43 +6,78 @@ class Program
 {
   static void Main()
   {
-    string[] input = File.ReadAllLines("day-03-input.txt");
-
-    PartOne partOne = new PartOne(input);
+    PartOneInput p1Input = new PartOneInput("day-03-input.txt");
+    p1Input.ParseInput();
+    PartOne partOne = new PartOne(p1Input);
     partOne.Main();
 
-    PartTwo partTwo = new PartTwo(input);
+    PartTwoInput p2Input = new PartTwoInput("day-03-input.txt");
+    p2Input.ParseInput();
+    PartTwo partTwo = new PartTwo(p2Input);
     partTwo.Main();
   }
 }
 
-class PartOne : PuzzlePart
+class PartOneInput : Input
 {
-  public PartOne(string[] input) : base(input)
-  {
-  }
-
-  public void Main()
-  {
-    System.Console.WriteLine("Part One:");
-    base.Main();
-  }
+  public PartOneInput(string filename) : base(filename){}
 }
 
-class PartTwo : PuzzlePart
+class PartTwoInput : Input
 {
-  public PartTwo(string[] input) : base(input)
+  public PartTwoInput(string filename) : base(filename){}
+
+  public override void ParseInput()
   {
+    List<List<string>> rotatedLines = new List<List<string>>();
+    foreach(string line in _filelines)
+    {
+      string[] stringLine = System.Text.RegularExpressions.Regex.Split(line, @"\s+"); ;
+      for(int i = 0; i < stringLine.Length; i++)
+      {
+        if(rotatedLines.Count < i + 1){
+          rotatedLines.Add(new List<string>());
+        }  
+
+        rotatedLines[i].Add(stringLine[i]);
+      }
+    }
+
+    List<int> group = new List<int>();
+    foreach(List<string> line in rotatedLines)
+    {
+      foreach(string item in line)
+      {
+        int intItem;
+        if(Int32.TryParse(item, out intItem))
+        {
+          if(group.Count >= 3)
+          {
+            input.Add(group);
+            group = new List<int>();
+          } 
+          group.Add(intItem);
+        }
+      }
+    }
+    if(group.Count >= 3)
+    {
+      input.Add(group);
+    } 
   }
 }
-
-class PuzzlePart
+class Input
 {
-  public List<List<int>> _input = new List<List<int>>();
-  public int _count = 0;
-  public PuzzlePart(string[] input)
+  public string[] _filelines;
+  public List<List<int>> input = new List<List<int>>();
+  public Input(string filename)
   {
-    foreach(string line in input)
+    _filelines = File.ReadAllLines(filename);
+  }
+
+  public virtual void ParseInput()
+  {
+    foreach(string line in _filelines)
     {
       string[] stringLine = System.Text.RegularExpressions.Regex.Split(line, @"\s+"); ;
       List<int> intLine = new List<int>();
@@ -53,8 +88,28 @@ class PuzzlePart
           intLine.Add(intSide);
         }
       }
-      _input.Add(intLine);
+      input.Add(intLine);
     }
+  }
+}
+
+class PartOne : PuzzlePart
+{
+  public PartOne(Input input) : base(input){}
+}
+
+class PartTwo : PuzzlePart
+{
+  public PartTwo(Input input) : base(input){}
+}
+
+class PuzzlePart
+{
+  public List<List<int>> _input = new List<List<int>>();
+  public int _count = 0;
+  public PuzzlePart(Input input)
+  {
+    _input = input.input;
   }
 
   public void Main()
@@ -66,7 +121,7 @@ class PuzzlePart
         _count += 1;
       }
     }
-  
+    System.Console.WriteLine(this.GetType().Name);
     System.Console.WriteLine(_count);
   }
 }
