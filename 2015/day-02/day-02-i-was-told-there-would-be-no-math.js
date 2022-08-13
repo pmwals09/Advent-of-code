@@ -1,10 +1,14 @@
-const data = require("./day-02-data.json")
+const fs = require("fs")
+
+const data = fs.readFileSync("./day-02-data.txt", { encoding: "utf8" }).split("\n")
+data.pop()
 
 const parseLine = (line) => {
+  const [l, w, h] = line.split("x")
   return {
-    l: line.split("x")[0],
-    w: line.split("x")[1],
-    h: line.split("x")[2],
+    l,
+    w,
+    h,
   }
 }
 
