@@ -72,4 +72,5 @@ int main(void){
   printf("Part two: %d\n", instructionN);
 
   fclose(fptr);
+  free(input);
 }
