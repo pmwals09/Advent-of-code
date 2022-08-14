@@ -1,4 +1,6 @@
-const data = require("./day-03-data.json");
+const fs = require("fs")
+
+const data = fs.readFileSync("./day-03-data.txt", { encoding: "utf8" })
 
 const chooseMove = (move, historySet, currentPosition) => {
   switch (move) {

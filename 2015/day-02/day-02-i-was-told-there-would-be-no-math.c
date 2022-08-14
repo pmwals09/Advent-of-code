@@ -1,20 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 int main(void){
   FILE *fp = fopen("./day-02-data.txt", "r");
   if(fp == NULL){
     fprintf(stderr, "Error opening file.\n");
     exit(1);
-  }
-
-  int size = 1000;
-  char *input = malloc(size);
-  if(input == NULL){
-    fprintf(stderr, "Error allocating memory to input\n");
-    exit(2);
   }
 
   int l, w, h;
@@ -43,4 +35,5 @@ int main(void){
 
   printf("Part one: %d\n", totalPaper);
   printf("Part two: %d\n", totalRibbon);
+  fclose(fp);
 }
