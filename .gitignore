@@ -2,3 +2,4 @@
 *.exe
 *.dylib*
 .DS_Store
+*.out

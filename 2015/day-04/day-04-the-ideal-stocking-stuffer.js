@@ -1,4 +1,6 @@
-const data = require("./day-04-data.json")
+const fs = require("fs")
+
+const data = fs.readFileSync("./day-04-data.txt", { encoding: "utf8" }).trim()
 const crypto = require("crypto")
 
 const md5hash = (string) => crypto.createHash('md5').update(string).digest('hex')
