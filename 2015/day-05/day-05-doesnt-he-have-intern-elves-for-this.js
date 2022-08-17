@@ -1,4 +1,6 @@
-const data = require("./day-05-data.json");
+const fs = require("fs")
+
+const data = fs.readFileSync("./day-05-data.txt", {encoding: "utf8"}).split("\n")
 
 const forbiddenStrings = ["ab", "cd", "pq", "xy"];
 
