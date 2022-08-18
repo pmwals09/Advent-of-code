@@ -1,4 +1,5 @@
-const data = require("./day-07-data.json");
+const fs = require("fs")
+const data = fs.readFileSync("./day-07-data.txt", {encoding: "utf8"}).split("\n");
 
 function executeNode({circuit, targetNode}) {
   targetNode.sources = targetNode.sources.map(sourceKey => {
