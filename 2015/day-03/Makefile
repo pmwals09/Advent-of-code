@@ -1,14 +1,12 @@
 .DEFAULT_GOAL := all
-NAME = day-04-the-ideal-stocking-stuffer
+NAME = day-03-perfectly-spherical-houses-in-a-vacuum
 
 all: time-c time-node time-lisp
 time-c: build
 	time ./a.out
 
-build:
-	@clang ./$(NAME).c -I/usr/local/opt/openssl/include\
-		-L/usr/local/opt/openssl/lib -Wno-deprecated-declarations -lcrypto
-	./a.out
+build: 
+	clang ./$(NAME).c
 
 run-c: build
 	./a.out
@@ -27,4 +25,4 @@ time-lisp:
 
 clean:
 	rm -f ./*.out
-	rm -f ./test.txt
+	rm -f ./*test.txt

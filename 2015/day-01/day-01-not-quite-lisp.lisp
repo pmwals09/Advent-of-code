@@ -1,0 +1,13 @@
+(with-open-file (f "./day-01-data.json" :direction :input)
+  (let ((total 0)
+        (first-basement nil))
+    (do ((c (read-char f) (read-char f nil))
+         (c-num 0 (+ 1 c-num)))
+        ((not (characterp c)))
+      (cond 
+        ((eq c #\() (setf total (+ total 1)))
+        ((eq c #\)) (setf total (- total 1))))
+      (when (and (< total 0) (null first-basement)) 
+        (setf first-basement c-num)))
+    (format t "Part one: ~A~%" total)
+    (format t "Part two: ~A~%" first-basement)))
