@@ -1,21 +1,28 @@
 .DEFAULT_GOAL := all
+NAME = day-05-doesnt-he-have-intern-elves-for-this
 
-all: time-c time-node
+all: time-c time-node time-lisp
 time-c: build
 	time ./a.out
 
 build: 
-	clang ./day-05-doesnt-he-have-intern-elves-for-this.c
+	clang ./$(NAME).c
 
 run-c: build
 	./a.out
 
 run-node:
-	node ./day-05-doesnt-he-have-intern-elves-for-this.js
+	node ./$(NAME).js
 
 time-node:
-	time node ./day-05-doesnt-he-have-intern-elves-for-this.js
+	time node ./$(NAME).js
+
+run-lisp:
+	sbcl --script ./$(NAME).lisp
+
+time-lisp:
+	time sbcl --script ./$(NAME).lisp
 
 clean:
-	rm ./*.out
-	rm ./*-test.txt
+	rm -f ./*.out
+	rm -f ./*test.txt
