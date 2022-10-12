@@ -1,21 +1,33 @@
-.DEFAULT_TARGET := all
-.PHONY = node build
-all: time-c time-node
+.DEFAULT_GOAL := all
+NAME = day-06-probably-a-fire-hazard
+
+all: time-c time-node time-lisp
 time-c: build
 	time ./a.out
-time-node:
-	time node ./day-06-probably-a-fire-hazard.js
-node:
-	node ./day-06-probably-a-fire-hazard.js
+
+build: 
+	clang ./$(NAME).c
+
 run-c: build
 	./a.out
-a.out:
-	clang ./day-06-probably-a-fire-hazard.c
-build:
-	clang ./day-06-probably-a-fire-hazard.c
+
+run-node:
+	node ./$(NAME).js
+
+time-node:
+	time node ./$(NAME).js
+
+run-lisp:
+	sbcl --script ./$(NAME).lisp
+
+time-lisp:
+	time sbcl --script ./$(NAME).lisp
+
 clean:
-	if [ -f ./*.out ] ; then rm ./*.out; fi
-	if [ -f ./*-test.txt ] ; then rm ./*-test.txt; fi
+	rm -f ./*.out
+	rm -f ./*test.txt
+	rm -f ./*.fasl
+
 leaks: build
 	leaks --atExit -- ./a.out
 
