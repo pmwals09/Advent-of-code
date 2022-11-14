@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := all
 
-all: time-c time-node time-lisp
+all: time-c time-node time-lisp time-rust
 time-c: build
 	time ./a.out
 
@@ -19,7 +19,17 @@ time-node:
 time-lisp:
 	time sbcl --script ./day-01-not-quite-lisp.lisp
 
+time-rust: day-01-not-quite-lisp
+	time ./day-01-not-quite-lisp
+
+run-rust: day-01-not-quite-lisp
+	./day-01-not-quite-lisp
+
+build-rust:
+	rustc ./day-01-not-quite-lisp.rs
+
 clean:
 	rm -f ./*.out
 	rm -f ./*-test.txt
 	rm -f ./test.txt
+	rm -f ./day-01-not-quite-lisp
