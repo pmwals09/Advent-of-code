@@ -5,13 +5,26 @@ all: time-c time-node time-lisp
 time-c: build
 	time ./a.out
 
-build:
-	@clang ./$(NAME).c -I/usr/local/opt/openssl/include\
-		-L/usr/local/opt/openssl/lib -Wno-deprecated-declarations -lcrypto
-	./a.out
+build: 
+	clang ./$(NAME).c
 
 run-c: build
 	./a.out
+
+time-rust: build-rust
+	cd ./rust/ && \
+	time ./rust/target/release/$(NAME); \
+	cd ..
+
+build-rust:
+	cd ./rust/ && \
+	cargo build --release; \
+	cd ..
+
+run-rust: build-rust
+	cd ./rust/ && \
+	cargo run; \
+	cd ..
 
 run-node:
 	node ./$(NAME).js
@@ -27,4 +40,4 @@ time-lisp:
 
 clean:
 	rm -f ./*.out
-	rm -f ./test.txt
+	rm -f ./*test.txt
