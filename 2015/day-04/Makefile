@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := all
 NAME = day-04-the-ideal-stocking-stuffer
 
-all: time-c time-node time-lisp
+all: time-c time-node time-lisp time-go
 time-c: build
 	time ./a.out
 
@@ -11,17 +11,17 @@ build:
 run-c: build
 	./a.out
 
-time-rust: build-rust
+time-rust: rust.out
 	cd ./rust/ && \
 	time ./rust/target/release/$(NAME); \
 	cd ..
 
-build-rust:
+rust.out:
 	cd ./rust/ && \
-	cargo build --release; \
+	cargo build -0 rust.out --release; \
 	cd ..
 
-run-rust: build-rust
+run-rust: rust.out
 	cd ./rust/ && \
 	cargo run; \
 	cd ..
@@ -30,13 +30,22 @@ run-node:
 	node ./$(NAME).js
 
 time-node:
-	time node ./$(NAME).js
+	echo "\n\nTiming Node..."
+	time -l node ./$(NAME).js
 
 run-lisp:
 	sbcl --script ./$(NAME).lisp
 
 time-lisp:
+	echo "\n\nTiming Lisp..."
 	time sbcl --script ./$(NAME).lisp
+
+go.out:
+	go build -o go.out ./$(NAME).go
+
+time-go: go.out
+	echo "\n\nTiming Go..."
+	time -l ./go.out
 
 clean:
 	rm -f ./*.out
