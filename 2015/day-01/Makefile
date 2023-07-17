@@ -1,47 +1,46 @@
 .DEFAULT_GOAL := all
+NAME = day-01-not-quite-lisp
 
 all: time-c time-node time-lisp time-rust time-go
-time-c: build
+time-c: a.out
 	time -l ./a.out
 
-build: 
-	clang ./day-01-not-quite-lisp.c
+a.out:
+	clang ./$(NAME).c
 
-run-c: build
+run-c: a.out
 	./a.out
 
 run-node:
-	node ./day-01-not-quite-lisp.js
+	node ./$(NAME).js
 
 time-node:
-	time -l node ./day-01-not-quite-lisp.js
+	time -l node ./$(NAME).js
 
 time-lisp:
-	time -l sbcl --script ./day-01-not-quite-lisp.lisp
+	time -l sbcl --script ./$(NAME).lisp
 
-time-rust: day-01-not-quite-lisp
-	time -l ./day-01-not-quite-lisp
+time-rust: rust.out
+	time -l ./rust.out
 
-run-rust: day-01-not-quite-lisp
-	./day-01-not-quite-lisp
+run-rust: rust.out
+	./rust.out
 
-build-rust:
-	rustc ./day-01-not-quite-lisp.rs
+rust.out:
+	rustc -o rust.out ./$(NAME).rs
 
-run-go: day-01-not-quite-lisp-go
-	./day-01-not-quite-lisp-go
+run-go:
+	go run ./$(NAME).go
 
-build-go:
-	go build -o ./day-01-not-quite-lisp-go ./day-01-not-quite-lisp.go
+go.out:
+	go build -o ./go.out ./$(NAME).go
 
-time-go: day-01-not-quite-lisp-go
-	time -l ./day-01-not-quite-lisp-go
+time-go: go.out
+	time -l ./go.out
 
 
 clean:
 	rm -f ./*.out
 	rm -f ./*-test.txt
 	rm -f ./test.txt
-	rm -f ./day-01-not-quite-lisp
 	rm -f ./go.mod
-	rm -f ./day-01-not-quite-lisp-go
