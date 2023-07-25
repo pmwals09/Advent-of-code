@@ -100,7 +100,7 @@ const spells = [
     name: "Shield",
     cost: 113,
     startFn: (wizard, _boss) => (wizard.armor += 7),
-    effectFn: (_wizard, _boss) => {},
+    effectFn: (_wizard, _boss) => { },
     endFn: (wizard, _boss) => (wizard.armor -= 7),
     duration: 6,
   }),
