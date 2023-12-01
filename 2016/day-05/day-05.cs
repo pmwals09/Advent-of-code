@@ -39,6 +39,7 @@ class PartOne : PuzzlePart
       if(hexString.Substring(0,5) == "00000")
       {
         Password += hexString[5];
+        Console.WriteLine($"PW Len {Password.Length}");
       }
       Index++;
     }
