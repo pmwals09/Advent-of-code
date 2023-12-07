@@ -126,8 +126,8 @@ func TestSchematic_IdxInBounds(t *testing.T) {
 	}
 }
 
-func TestPartOne(t *testing.T) {
-	sample := `467..114..
+func TestParts(t *testing.T) {
+	sample := NewSchematic(`467..114..
 ...*......
 ..35..633.
 ......#...
@@ -136,29 +136,29 @@ func TestPartOne(t *testing.T) {
 ..592.....
 ......755.
 ...$.*....
-.664.598..`
-	expected := 4361
-	output := PartOne(NewSchematic(sample))
-	if output != expected {
-		t.Errorf("Expected %v, got %v", expected, output)
-	}
-}
+.664.598..`)
 
-func TestPartTwo(t *testing.T) {
-	sample := `467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598..`
-	expected := 467835
-	output := PartTwo(NewSchematic(sample))
-	if output != expected {
-		t.Errorf("Expected %v, got %v", expected, output)
+	tests := map[string]struct {
+		fn       func(Schematic) int
+		expected int
+	}{
+		"Part One": {
+			fn:       PartOne,
+			expected: 4361,
+		},
+		"Part Two": {
+			fn:       PartTwo,
+			expected: 467835,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			output := tc.fn(sample)
+			if output != tc.expected {
+				t.Errorf("Expected %v, got %v", tc.expected, output)
+			}
+		})
 	}
 }
 
@@ -172,33 +172,33 @@ func TestRelevantItem_Intersects(t *testing.T) {
 		expected bool
 	}{
 		"Gear detects intersection w/ Number": {
-      this:     Gear{ Offset: 2 },
-      other:    Number{ Raw: "2", Offset: 3, Length: 1, Value: 2 },
+			this:     Gear{Offset: 2},
+			other:    Number{Raw: "2", Offset: 3, Length: 1, Value: 2},
 			expected: true,
 		},
 		"Gear detects no intersection w/ Number": {
-      this:     Gear{ Offset: 2 },
-      other:    Number{ Raw: "3", Offset: 6, Length: 1, Value: 3 },
+			this:     Gear{Offset: 2},
+			other:    Number{Raw: "3", Offset: 6, Length: 1, Value: 3},
 			expected: false,
 		},
 		"Number detects intersection w/ Gear": {
-      this:     Number{ Raw: "2", Offset: 3, Length: 1, Value: 2 },
-      other:    Gear{ Offset: 2 },
+			this:     Number{Raw: "2", Offset: 3, Length: 1, Value: 2},
+			other:    Gear{Offset: 2},
 			expected: true,
 		},
 		"Number detects no intersection w/ Gear": {
-			this:     Number{ Raw: "3", Offset: 6, Length: 1, Value: 3 },
-      other:    Gear{Offset: 2},
+			this:     Number{Raw: "3", Offset: 6, Length: 1, Value: 3},
+			other:    Gear{Offset: 2},
 			expected: false,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-      output := tc.this.Intersects(tc.other, NewSchematic(sample)) 
-      if output != tc.expected {
-        t.Errorf("Expected %v, got %v", tc.expected, output)
-      }
+			output := tc.this.Intersects(tc.other, NewSchematic(sample))
+			if output != tc.expected {
+				t.Errorf("Expected %v, got %v", tc.expected, output)
+			}
 		})
 	}
 }

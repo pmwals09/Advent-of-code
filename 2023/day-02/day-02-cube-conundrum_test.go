@@ -4,28 +4,33 @@ import (
   "testing"
 )
 
-func TestPartOne(t *testing.T) {
-  input := `Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+func TestParts(t *testing.T) {
+  input := inputToGames(`Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
 Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`
-  expected := 8
-  actual := PartOne(input)
-  if actual!= expected {
-    t.Fatalf("Expected %d, got %d", expected, actual)
-  }
-}
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`)
 
-func TestPartTwo(t *testing.T) {
-  input := `Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`
-  expected := 2286
-  actual := PartTwo(input)
-  if actual!= expected {
-    t.Fatalf("Expected %d, got %d", expected, actual)
+  tests := map[string]struct{
+    fn func([]Game)int
+    expected int
+  } {
+    "Part One": {
+      fn: PartOne,
+      expected: 8,
+    },
+    "Part Two": {
+      fn: PartTwo,
+      expected: 2286,
+    },
+  }
+
+  for name, tc := range(tests) {
+    t.Run(name, func(t *testing.T) {
+      output := tc.fn(input)
+      if output != tc.expected {
+        t.Errorf("Expected %v, received %v", tc.expected, output)
+      }
+    })
   }
 }
