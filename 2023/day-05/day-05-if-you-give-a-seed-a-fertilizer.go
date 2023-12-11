@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Range struct {
@@ -87,19 +88,33 @@ type PathState struct {
 func PartOne(input string) int {
 	minLocation := math.MaxInt
 	seeds, maps := NewGroups(input)
+	wg := sync.WaitGroup{}
+	ch := make(chan int)
 	for i := range seeds {
-	Maps:
-		for _, materialMap := range maps {
-			for _, r := range materialMap.Ranges {
-				if r.FromRange.Contains(seeds[i]) {
-					seeds[i] = r.Translate(seeds[i])
-					continue Maps
+		wg.Add(1)
+		go func(idx int) {
+		Maps:
+			for _, materialMap := range maps {
+				for _, r := range materialMap.Ranges {
+					if r.FromRange.Contains(seeds[idx]) {
+						seeds[idx] = r.Translate(seeds[idx])
+						continue Maps
+					}
 				}
 			}
+			ch <- seeds[idx]
+			wg.Done()
+		}(i)
+	}
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	for s := range ch {
+		if s < minLocation {
+			minLocation = s
 		}
-    if seeds[i] < minLocation {
-      minLocation = seeds[i]
-    }
 	}
 
 	return minLocation
@@ -108,20 +123,31 @@ func PartOne(input string) int {
 func PartTwo(input string) int {
 	minLocation := math.MaxInt
 	seeds, maps := NewGroupRanges(input)
+	wg := sync.WaitGroup{}
+	mu := sync.Mutex{}
 	for i := range seeds {
-	Maps:
-		for _, materialMap := range maps {
-			for _, r := range materialMap.Ranges {
-				if r.FromRange.Contains(seeds[i]) {
-					seeds[i] = r.Translate(seeds[i])
-					continue Maps
+		wg.Add(1)
+		go func(batch []int) {
+			for idx := range batch {
+			Maps:
+				for _, materialMap := range maps {
+					for _, r := range materialMap.Ranges {
+						if r.FromRange.Contains(batch[idx]) {
+							batch[idx] = r.Translate(batch[idx])
+							continue Maps
+						}
+					}
+				}
+				if batch[idx] < minLocation {
+					mu.Lock()
+					minLocation = batch[idx]
+					mu.Unlock()
 				}
 			}
-		}
-		if seeds[i] < minLocation {
-			minLocation = seeds[i]
-		}
+			wg.Done()
+		}(seeds[i])
 	}
+	wg.Wait()
 
 	return minLocation
 }
@@ -149,9 +175,9 @@ func GroupToSeeds(group string, seeds *[]int) {
 	}
 }
 
-func NewGroupRanges(input string) ([]int, []MaterialMap) {
+func NewGroupRanges(input string) ([][]int, []MaterialMap) {
 	paragraphs := strings.Split(input, "\n\n")
-	seeds := []int{}
+	seeds := [][]int{}
 	maps := []MaterialMap{}
 	for i, group := range paragraphs {
 		if i == 0 {
@@ -164,14 +190,16 @@ func NewGroupRanges(input string) ([]int, []MaterialMap) {
 	return seeds, maps
 }
 
-func GroupToSeedRanges(group string, seeds *[]int) {
+func GroupToSeedRanges(group string, seeds *[][]int) {
 	_, seedStr, _ := strings.Cut(group, ": ")
 	parts := strings.Split(seedStr, " ")
 	for i := 0; i < len(parts); i += 2 {
 		start, _ := strconv.Atoi(parts[i])
 		length, _ := strconv.Atoi(parts[i+1])
+		batch := []int{}
 		for j := start; j < start+length; j++ {
-			*seeds = append(*seeds, j)
+			batch = append(batch, j)
 		}
+		*seeds = append(*seeds, batch)
 	}
 }

@@ -32,15 +32,19 @@ func TestNewMaterialMap(t *testing.T) {
 
 func TestGroupToSeedRanges(t *testing.T) {
 	input := "seeds: 79 14 55 13"
-	output := []int{}
-	expected := []int{
-    79, 80, 81, 82, 83,
-    84, 85, 86, 87, 88,
-    89, 90, 91, 92,
-    55, 56, 57, 58, 59,
-    60, 61, 62, 63, 64,
-    65, 66, 67,
-  }
+	output := [][]int{}
+	expected := [][]int{
+		{
+			79, 80, 81, 82, 83,
+			84, 85, 86, 87, 88,
+			89, 90, 91, 92,
+		},
+		{
+			55, 56, 57, 58, 59,
+			60, 61, 62, 63, 64,
+			65, 66, 67,
+		},
+	}
 	GroupToSeedRanges(input, &output)
 	if !reflect.DeepEqual(output, expected) {
 		t.Errorf("Expected %v, received %v", expected, output)
@@ -48,35 +52,34 @@ func TestGroupToSeedRanges(t *testing.T) {
 }
 
 func TestMaterialRange_Translate(t *testing.T) {
-  rangeString := "49 53 8"
-  tests := map[string]struct{
-    expected int
-    input int
-  }{
-    "Happy path": {
-      expected: 50,
-      input: 54,
-    },
-    "Bottom of range": {
-      expected: 49,
-      input: 53,
-    },
-    "Top of range": {
-      input: 60,
-      expected: 56,
+	rangeString := "49 53 8"
+	tests := map[string]struct {
+		expected int
+		input    int
+	}{
+		"Happy path": {
+			expected: 50,
+			input:    54,
+		},
+		"Bottom of range": {
+			expected: 49,
+			input:    53,
+		},
+		"Top of range": {
+			input:    60,
+			expected: 56,
+		},
+	}
 
-    },
-  }
-
-  for name, tc := range tests {
-    t.Run(name, func(t *testing.T) {
-      r := NewMaterialRange(rangeString)
-      output := r.Translate(tc.input)
-      if output != tc.expected {
-        t.Errorf("Expected %v, received %v", tc.expected, output)
-      }
-    })
-  }
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			r := NewMaterialRange(rangeString)
+			output := r.Translate(tc.input)
+			if output != tc.expected {
+				t.Errorf("Expected %v, received %v", tc.expected, output)
+			}
+		})
+	}
 }
 
 func TestParts(t *testing.T) {
