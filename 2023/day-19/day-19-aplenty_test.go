@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestPartOne(t *testing.T) {
+func TestParts(t *testing.T) {
   sample := `px{a<2006:qkq,m>2090:A,rfg}
 pv{a>1716:R,A}
 lnx{m>1548:A,A}
@@ -20,9 +20,25 @@ hdj{m>838:A,pv}
 {x=2036,m=264,a=79,s=2244}
 {x=2461,m=1339,a=466,s=291}
 {x=2127,m=1623,a=2188,s=1013}`
-  expected := 19114
-  output := PartOne(sample)
-  if output != expected {
-    t.Errorf("Expected %v, received %v", expected, output)
+  tests := map[string]struct{
+    fn func(string)int
+    expected int
+  }{
+    "Part One": {
+      fn: PartOne,
+      expected: 19114,
+    },
+    "Part Two":{
+      fn: PartTwo,
+      expected: 167409079868000,
+    },
+  }
+  for name, test := range tests {
+    t.Run(name, func(t *testing.T) {
+      output := test.fn(sample)
+      if output != test.expected {
+        t.Errorf("Expected %v, received %v", test.expected, output)
+      }
+    })
   }
 }
